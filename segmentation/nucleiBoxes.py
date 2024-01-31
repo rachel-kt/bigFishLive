@@ -37,7 +37,9 @@ import numpy as np
 import math
 import os
 import tifffile
+from cellpose.utils import remove_edge_masks
 import numpy.ma as ma
+
 import matplotlib.pyplot as plt
 
 def getBackgroundTimeProfile(path_input, nameKey, imsQ, minc, minr, maxc, maxr, start=0, stop=0, extensionF='.tif'):
@@ -68,36 +70,37 @@ def getBackgroundTimeProfile(path_input, nameKey, imsQ, minc, minr, maxc, maxr, 
 
 def getNucleiCoordinates(maskPath, shouldIplot=False):
 
-	"""
-	This function is for reading image masks and obtaining coordinates of individual nuclei in a movie frame. 
+    """
+    This function is for reading image masks and obtaining coordinates of individual nuclei in a movie frame. 
 
-	Parameters
-	----------
+    Parameters
+    ----------
 
-	1. maskPath : the whole path of the image to be opened. (dir+filename)
-		       type : str
-		        
-	2. shouldIplot : default False. To plot the mask along with centroid and crop box around each nuclei 
-		       type : Boolean
+    1. maskPath : the whole path of the image to be opened. (dir+filename)
+           type : str
 
-	Returns
-	-------
+    2. shouldIplot : default False. To plot the mask along with centroid and crop box around each nuclei 
+           type : Boolean
 
-	1. cropBoxCoordinates : list of coordinate of the crop box
-		       type : list
-		       
-	2. nucleiCentroids : list of [x,y] coordinates of the centroid of each cell
-		       type : list
+    Returns
+    -------
 
-	3. noNuclei : numpy.ndarray of nuclei labels
-		       type : numpy.ndarray
-		       
-	4. orientations :
+    1. cropBoxCoordinates : list of coordinate of the crop box
+           type : list
+
+    2. nucleiCentroids : list of [x,y] coordinates of the centroid of each cell
+           type : list
+
+    3. noNuclei : numpy.ndarray of nuclei labels
+           type : numpy.ndarray
+
+    4. orientations :
 
 
-	"""
+    """
     image = io.imread(maskPath)
     label_img = label(image)
+    label_img = remove_edge_masks(label_img, change_index=True)
     regions = regionprops(label_img)
     noNuclei = np.unique(label_img)
     noNuclei = np.delete(noNuclei,0)
@@ -142,6 +145,7 @@ def getNucleiCoordinates(maskPath, shouldIplot=False):
 
 def getTimeProfile(path_input,nucleiStackForm, cellNumber, label_image_name, labeldf, start=0, stop=0, extensionF='.tif'):
     label_image = io.imread(label_image_name)
+    label_image = remove_edge_masks(label_image, change_index=True)
     nuclei=np.int64(cellNumber)
     nucIdx = np.where(labeldf['label']==np.int64(nuclei))
     minr = labeldf.loc[nucIdx]['minr'].values[0]
@@ -149,9 +153,9 @@ def getTimeProfile(path_input,nucleiStackForm, cellNumber, label_image_name, lab
     sizex = np.int64(labeldf.loc[nucIdx]['sizex'].values[0])
     sizey = np.int64(labeldf.loc[nucIdx]['sizey'].values[0])
     nucleiMask = label_image[math.floor(minr):math.floor(minr)+sizex,math.floor(minc):math.floor(minc)+sizey]
-
-    maskNum = np.unique(nucleiMask)
-    maskNum = np.delete(maskNum,0)
+    
+    
+    maskNum = nuclei
     imagePath = path_input
     meanofRandomImageSample_within = []
     meanofRandomImageSample_outside = []
