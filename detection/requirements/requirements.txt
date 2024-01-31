@@ -1,0 +1,9 @@
+big_fish==0.6.2
+dask==2023.6.1
+imaris_ims_file_reader==0.1.8
+kneed==0.8.5
+matplotlib==3.7.1
+numpy==1.23.0
+numpy==1.24.3
+tifffile==2022.4.8
+tifffile==2023.9.26
