@@ -43,6 +43,47 @@ import numpy.ma as ma
 import matplotlib.pyplot as plt
 
 def getBackgroundTimeProfile(path_input, nameKey, imsQ, minc, minr, maxc, maxr, start=0, stop=0, extensionF='.tif'):
+    """Calculate the background time profile based on image stack projections.
+
+    Parameters
+    ----------
+    path_input : str
+        Path to the directory containing the image stack.
+    nameKey : str
+        Key identifying the image stack.
+    imsQ : str
+        Identifier for the image stack.
+    minc : int
+        Minimum column index for cropping the image.
+    minr : int
+        Minimum row index for cropping the image.
+    maxc : int
+        Maximum column index for cropping the image.
+    maxr : int
+        Maximum row index for cropping the image.
+    start : int, optional
+        Starting time point for profile calculation, default is 0.
+    stop : int, optional
+        Ending time point for profile calculation, default is 0 (single time point).
+    extensionF : str, optional
+        File extension for image stack files, default is '.tif'.
+
+    Returns
+    -------
+    list
+        Mean intensity values of the cropped region for each time point in the specified range.
+
+    Notes
+    -----
+    This function reads image stacks, extracts the projection, and calculates the mean intensity
+    of the specified crop region for each time point in the given range.
+
+    Example
+    -------
+    mean_profile = getBackgroundTimeProfile('/path/to/images', 'nuclei_', 'Q1', 10, 20, 30, 40, start=0, stop=10)
+    """
+    # Function implementation...
+    # ...
     imagePath = path_input
     maxTimePoint=stop
     meanofRandomImageSample = []
@@ -69,35 +110,41 @@ def getBackgroundTimeProfile(path_input, nameKey, imsQ, minc, minr, maxc, maxr, 
 
 
 def getNucleiCoordinates(maskPath, shouldIplot=False):
-
-    """
-    This function is for reading image masks and obtaining coordinates of individual nuclei in a movie frame. 
+    """Extract nuclei coordinates and related information from a binary mask.
 
     Parameters
     ----------
-
-    1. maskPath : the whole path of the image to be opened. (dir+filename)
-           type : str
-
-    2. shouldIplot : default False. To plot the mask along with centroid and crop box around each nuclei 
-           type : Boolean
+    maskPath : str
+        Path to the binary mask image containing nuclei.
+    shouldIplot : bool, optional
+        Flag indicating whether to plot the nuclei and related information, default is False.
 
     Returns
     -------
+    tuple
+        A tuple containing the following lists:
+        1. cropBoxCoordinates : list
+            List of crop box coordinates for each detected nucleus.
+        2. nucleiCentroids : list
+            List of centroids for each detected nucleus.
+        3. noNuclei : ndarray
+            Array of unique nucleus labels.
+        4. orientations : list
+            List of orientation information for each detected nucleus.
 
-    1. cropBoxCoordinates : list of coordinate of the crop box
-           type : list
+    Notes
+    -----
+    This function reads a binary mask image, labels connected components, and extracts
+    information such as crop box coordinates, centroids, nucleus labels, and orientations.
+    If shouldIplot is set to True, it also plots the nuclei and related information.
 
-    2. nucleiCentroids : list of [x,y] coordinates of the centroid of each cell
-           type : list
-
-    3. noNuclei : numpy.ndarray of nuclei labels
-           type : numpy.ndarray
-
-    4. orientations :
-
-
+    Example
+    -------
+    crop_boxes, centroids, nucleus_labels, orientations = getNucleiCoordinates('/path/to/mask/image.tif', shouldIplot=True)
     """
+    # Function implementation...
+    # ...
+
     image = io.imread(maskPath)
     label_img = label(image)
     label_img = remove_edge_masks(label_img, change_index=True)
@@ -144,6 +191,48 @@ def getNucleiCoordinates(maskPath, shouldIplot=False):
     return cropBoxCoordinates, nucleiCentroids, noNuclei, orientations
 
 def getTimeProfile(path_input,nucleiStackForm, cellNumber, label_image_name, labeldf, start=0, stop=0, extensionF='.tif'):
+    """Calculate time profiles of mean intensity inside and outside a specified nucleus.
+
+    Parameters
+    ----------
+    path_input : str
+        Path to the directory containing the image stack.
+    nucleiStackForm : str
+        Prefix identifying the image stack.
+    cellNumber : int
+        Identifier for the nucleus.
+    label_image_name : str
+        Path to the labeled image containing nuclei.
+    labeldf : pandas.DataFrame
+        DataFrame containing information about labeled nuclei.
+    start : int, optional
+        Starting time point for profile calculation, default is 0.
+    stop : int, optional
+        Ending time point for profile calculation, default is 0 (single time point).
+    extensionF : str, optional
+        File extension for image stack files, default is '.tif'.
+
+    Returns
+    -------
+    tuple
+        A tuple containing two lists:
+        1. meanofRandomImageSample_within : list
+            Time profile of mean intensity within the specified nucleus.
+        2. meanofRandomImageSample_outside : list
+            Time profile of mean intensity outside the specified nucleus.
+
+    Notes
+    -----
+    This function reads image stacks, extracts the projection, and calculates the mean intensity
+    within and outside a specified nucleus for each time point in the given range.
+
+    Example
+    -------
+    profile_within, profile_outside = getTimeProfile('/path/to/images', 'nuclei_', 1, '/path/to/label_image.tif', label_df, start=0, stop=10)
+    """
+    # Function implementation...
+    # ...
+
     label_image = io.imread(label_image_name)
     label_image = remove_edge_masks(label_image, change_index=True)
     nuclei=np.int64(cellNumber)
