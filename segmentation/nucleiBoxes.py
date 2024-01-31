@@ -5,30 +5,6 @@ Created on Tue Mar 14 17:18:14 2023
 
 @author: rachel
 
-This function is for reading image masks and obtaining coordinates of individual nuclei in a movie frame. 
-
-Parameters
-----------
-
-1. maskPath : the whole path of the image to be opened. (dir+filename)
-               type : str
-                
-2. shouldIplot : default False. To plot the mask along with centroid and crop box around each nuclei 
-               type : Boolean
-
-Returns
--------
-
-1. cropBoxCoordinates : list of coordinate of the crop box
-               type : list
-               
-2. nucleiCentroids : list of [x,y] coordinates of the centroid of each cell
-               type : list
-
-3. noNuclei : numpy.ndarray of nuclei labels
-               type : numpy.ndarray
-
-
 """
 
 from skimage.measure import label, regionprops
@@ -39,75 +15,7 @@ import os
 import tifffile
 from cellpose.utils import remove_edge_masks
 import numpy.ma as ma
-
 import matplotlib.pyplot as plt
-
-def getBackgroundTimeProfile(path_input, nameKey, imsQ, minc, minr, maxc, maxr, start=0, stop=0, extensionF='.tif'):
-    """Calculate the background time profile based on image stack projections.
-
-    Parameters
-    ----------
-    path_input : str
-        Path to the directory containing the image stack.
-    nameKey : str
-        Key identifying the image stack.
-    imsQ : str
-        Identifier for the image stack.
-    minc : int
-        Minimum column index for cropping the image.
-    minr : int
-        Minimum row index for cropping the image.
-    maxc : int
-        Maximum column index for cropping the image.
-    maxr : int
-        Maximum row index for cropping the image.
-    start : int, optional
-        Starting time point for profile calculation, default is 0.
-    stop : int, optional
-        Ending time point for profile calculation, default is 0 (single time point).
-    extensionF : str, optional
-        File extension for image stack files, default is '.tif'.
-
-    Returns
-    -------
-    list
-        Mean intensity values of the cropped region for each time point in the specified range.
-
-    Notes
-    -----
-    This function reads image stacks, extracts the projection, and calculates the mean intensity
-    of the specified crop region for each time point in the given range.
-
-    Example
-    -------
-    mean_profile = getBackgroundTimeProfile('/path/to/images', 'nuclei_', 'Q1', 10, 20, 30, 40, start=0, stop=10)
-    """
-    # Function implementation...
-    # ...
-    imagePath = path_input
-    maxTimePoint=stop
-    meanofRandomImageSample = []
-    timePoint = start
-    nucleiStackName = nameKey+imsQ+'_t'+str(f"{timePoint:03}")+extensionF
-    nucleiStackPath = os.path.join(imagePath, nucleiStackName) 
-    newimage = io.imread(nucleiStackPath)
-    imageShape = np.shape(newimage)
-    projectionNuclei = np.max(newimage, axis=0)
-    cropBoxForIntensity = projectionNuclei[minr:maxr,minc:maxc]
-    imageSampleMean = np.mean(cropBoxForIntensity)
-    meanofRandomImageSample.append(imageSampleMean)
-    for ii in range(timePoint, maxTimePoint):
-        timePoint = ii
-        nucleiStackName =  nameKey+imsQ+'_t'+str(f"{timePoint:03}")+extensionF
-        nucleiStackPath = os.path.join(imagePath, nucleiStackName)     
-        newimage = io.imread(nucleiStackPath)
-        projectionNuclei = np.max(newimage, axis=0)
-        cropBoxForIntensity = projectionNuclei[minr:maxr,minc:maxc]
-        imageSampleMean = np.mean(cropBoxForIntensity)
-        meanofRandomImageSample.append(imageSampleMean)  
-    return meanofRandomImageSample
-
-
 
 def getNucleiCoordinates(maskPath, shouldIplot=False):
     """Extract nuclei coordinates and related information from a binary mask.
@@ -190,6 +98,63 @@ def getNucleiCoordinates(maskPath, shouldIplot=False):
     plt.show()
     return cropBoxCoordinates, nucleiCentroids, noNuclei, orientations
 
+def getBackgroundTimeProfile(imagePath, nameKey, imsQ, minc, minr, maxc, maxr, start=0, stop=0, extensionF='.tif'):
+    """Calculate the background time profile based on image stack projections.
+
+    Parameters
+    ----------
+    path_input : str
+        Path to the directory containing the image stack.
+    nameKey : str
+        Key identifying the image stack.
+    imsQ : str
+        Identifier for the image stack.
+    minc : int
+        Minimum column index for cropping the image.
+    minr : int
+        Minimum row index for cropping the image.
+    maxc : int
+        Maximum column index for cropping the image.
+    maxr : int
+        Maximum row index for cropping the image.
+    start : int, optional
+        Starting time point for profile calculation, default is 0.
+    stop : int, optional
+        Ending time point for profile calculation, default is 0 (single time point).
+    extensionF : str, optional
+        File extension for image stack files, default is '.tif'.
+
+    Returns
+    -------
+    list
+        Mean intensity values of the cropped region for each time point in the specified range.
+
+    Notes
+    -----
+    This function reads image stacks, extracts the projection, and calculates the mean intensity
+    of the specified crop region for each time point in the given range.
+
+    Example
+    -------
+    mean_profile = getBackgroundTimeProfile('/path/to/images', 'nuclei_', 'Q1', 10, 20, 30, 40, start=0, stop=10)
+    """
+    # Function implementation...
+    # ...
+
+    meanofRandomImageSample = []
+    for timePoint in range(start, stop):
+ 
+        nucleiStackName = nameKey+imsQ+'_t'+str(f"{timePoint:03}")+extensionF
+        nucleiStackPath = os.path.join(imagePath, nucleiStackName) 
+
+        newimage = io.imread(nucleiStackPath)
+        imageShape = np.shape(newimage)
+
+        projectionNuclei = np.max(newimage, axis=0)
+        cropBoxForIntensity = projectionNuclei[minr:maxr,minc:maxc]
+        meanofRandomImageSample.append(np.mean(cropBoxForIntensity))
+    return meanofRandomImageSample
+
 def getTimeProfile(path_input,nucleiStackForm, cellNumber, label_image_name, labeldf, start=0, stop=0, extensionF='.tif'):
     """Calculate time profiles of mean intensity inside and outside a specified nucleus.
 
@@ -242,40 +207,22 @@ def getTimeProfile(path_input,nucleiStackForm, cellNumber, label_image_name, lab
     sizex = np.int64(labeldf.loc[nucIdx]['sizex'].values[0])
     sizey = np.int64(labeldf.loc[nucIdx]['sizey'].values[0])
     nucleiMask = label_image[math.floor(minr):math.floor(minr)+sizex,math.floor(minc):math.floor(minc)+sizey]
-    
-    
-    maskNum = nuclei
+
     imagePath = path_input
     meanofRandomImageSample_within = []
     meanofRandomImageSample_outside = []
 
-    timePoint = start
-    maxTimePoint = stop
-    nucleiStackName =  nucleiStackForm+str(nuclei)+'_t'+str(f"{timePoint:03}")+extensionF
-    nucleiStackPath = os.path.join(imagePath, nucleiStackName) 
-    newimage = io.imread(nucleiStackPath)
-    imageShape = np.shape(newimage)
-    projectionNuclei = np.max(newimage, axis=0)
-    withinNuc = ma.masked_where(nucleiMask!=maskNum, projectionNuclei)
-    outsideNuc =  ma.masked_where(nucleiMask==maskNum, projectionNuclei)
-    imageSampleMean_within = np.mean(withinNuc)
-    imageSampleMean_outside = np.mean(outsideNuc)
-    meanofRandomImageSample_within.append(imageSampleMean_within)
-    meanofRandomImageSample_outside.append(imageSampleMean_outside)
+    for timePoint in range(start,stop):
 
-    for ii in range(timePoint,maxTimePoint):
-        timePoint = ii
         nucleiStackName =  nucleiStackForm+str(nuclei)+'_t'+str(f"{timePoint:03}")+extensionF
-        nucleiStackPath = os.path.join(imagePath, nucleiStackName)     
+        nucleiStackPath = os.path.join(imagePath, nucleiStackName) 
         newimage = io.imread(nucleiStackPath)
-        imageShape = np.shape(newimage)
         projectionNuclei = np.max(newimage, axis=0)
-        withinNuc = ma.masked_where(nucleiMask!=maskNum, projectionNuclei)
-        outsideNuc =  ma.masked_where(nucleiMask==maskNum, projectionNuclei)
-        imageSampleMean_within = np.mean(withinNuc)
-        imageSampleMean_outside = np.mean(outsideNuc)
-        meanofRandomImageSample_within.append(imageSampleMean_within)
-        meanofRandomImageSample_outside.append(imageSampleMean_outside)   
+
+        withinNuc = ma.masked_where(nucleiMask!=nuclei, projectionNuclei)
+        outsideNuc =  ma.masked_where(nucleiMask==nuclei, projectionNuclei)
+        meanofRandomImageSample_within.append(np.mean(withinNuc))
+        meanofRandomImageSample_outside.append(np.mean(outsideNuc))
 
     return meanofRandomImageSample_within, meanofRandomImageSample_outside
 
