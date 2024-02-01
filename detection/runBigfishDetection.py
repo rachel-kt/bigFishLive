@@ -4,49 +4,6 @@ Created on Tue Jul 3 14:59:14 2023
 
 @author: rachel
 
-This function is for reading cell z stacks crops and running bigfish spot and cluster detection on each movie frame. 
-
-Parameters
-----------
-
-1. pathTocellCrops : the path to the folder of the cell to be opened. (dir)
-               type : str
-2. reference_spot :
-
-3. cellnumber : default 1. The nuclei to be used to perform the detection
-               type : int    
-4. startTime  : default 0. starting Time of the series to be analysed
-               type : int
-5. stopTime  : default 2. stop Time of the series to be analysed
-
-6. thresholdManual :        
-
-7. beta : default 1.
-
-8. gamma
-9. numberOfSpots : default 2
-10. radiusCluster : default 400 (nm)
-11. voxelSize : default (600,121,121)
-12. objectSize : default (400,202,202)
-13. reorder : default False
-14. extensionMov : default '.tif'
-
-
-
-
-Returns
--------
-
-1. spotsFrame  : list of numpy arrays of coordinate of the detected spots.
-               type : list of numpy.array
-               
-2. clustersFrames : list of numpy arrays of coordinates of the detected clusters.
-               type : list of numpy.array
-
-3. ThresholdFrames : List of numpy.ndarray of automatic thresholds
-               type : list of numpy.ndarray
-
-
 """
 
 
@@ -58,15 +15,66 @@ import bigfish.stack as stack
 import bigfish.detection as detection
 import bigfish.multistack as multistack
 import bigfish.plot as plot
-from copy import deepcopy
 from reorderStack import reorderZstack
 
-# def normalize(img, maxI):
-#     lmin =float(img.min())
-#     lmax =float(img.max())
-#     return np.floor((img-lmin)/(lmax-lmin)*maxI).astype('uint16')
-
 def getSpotAndClusters(pathTocellCrops,reference_spot, cellnumber=1, startTime=0, stopTime=900, thresholdManual=50, beta=1, gamma=1,numberOfSpots=2, radiusCluster=400, voxelSize=(600,121,121), objectSize=(400,202,202), reorder=False, extensionMov='.tif'):
+
+    """Detect spots and clusters within a cell over a specified time range.
+
+    Parameters
+    ----------
+    pathTocellCrops : str
+        Path to the directory containing cell crop images.
+    reference_spot : list or None
+        List of reference spots or None if not available.
+    cellnumber : int, optional
+        Cell identifier, default is 1.
+    startTime : int, optional
+        Starting time point for analysis, default is 0.
+    stopTime : int, optional
+        Ending time point for analysis, default is 900.
+    thresholdManual : int, optional
+        Manual threshold for spot detection, default is 50.
+    beta : int, optional
+        Beta parameter for spot decomposition, default is 1.
+    gamma : int, optional
+        Gamma parameter for spot decomposition, default is 1.
+    numberOfSpots : int, optional
+        Minimum number of spots for clustering, default is 2.
+    radiusCluster : int, optional
+        Radius for clustering, default is 400.
+    voxelSize : tuple, optional
+        Voxel size in nanometers, default is (600, 121, 121).
+    objectSize : tuple, optional
+        Object size in nanometers, default is (400, 202, 202).
+    reorder : bool, optional
+        Flag indicating whether to reorder the Z-stack, default is False.
+    extensionMov : str, optional
+        File extension for image stack files, default is '.tif'.
+
+    Returns
+    -------
+    tuple
+        A tuple containing three lists:
+        1. spotsFrame : list
+            List of detected spots at each time point.
+        2. clustersFrames : list
+            List of detected clusters at each time point.
+        3. ThresholdFrames : list
+            List of threshold values used for spot detection at each time point.
+
+    Notes
+    -----
+    This function reads cell crop images, detects spots and clusters, and provides information
+    such as spot coordinates, clusters, and threshold values over the specified time range.
+
+    Example
+    -------
+    spots, clusters, thresholds = getSpotAndClusters('/path/to/cell/crops', reference_spot, cellnumber=1, startTime=0, stopTime=10)
+    """
+    # Function implementation...
+    # ...
+
     cell = cellnumber
     spotsFrame = []
     ThresholdFrames = []
@@ -103,7 +111,7 @@ def getSpotAndClusters(pathTocellCrops,reference_spot, cellnumber=1, startTime=0
         spotsFrame.append(spots_current)
         ThresholdFrames.append(threshold)
         print(t)
-        spots_post_decomposition, dense_regions, reference_spot_current = detection.decompose_dense_2(
+        spots_post_decomposition, dense_regions, reference_spot_current = detection.decompose_dense_live(
             image=rna, 
             spots=spots_current,
             reference_spot_previous=reference_spot,
@@ -124,12 +132,43 @@ def getSpotAndClusters(pathTocellCrops,reference_spot, cellnumber=1, startTime=0
     print('done!')
     return spotsFrame, clustersFrames, ThresholdFrames
 
-
 def saveSpotsNPZ(spotsFrame, clustersFrames, ThresholdFrames, cellName, pathTocellCrops, reference_spot):
+    """Save spot and cluster information to a NumPy NPZ file.
+
+    Parameters
+    ----------
+    spotsFrame : list
+        List of detected spots at each time point.
+    clustersFrames : list
+        List of detected clusters at each time point.
+    ThresholdFrames : list
+        List of threshold values used for spot detection at each time point.
+    cellName : str
+        Name or identifier for the cell.
+    pathTocellCrops : str
+        Path to the directory containing cell crop images.
+    reference_spot : list
+        List of reference spots.
+
+    Returns
+    -------
+    None
+
+    Notes
+    -----
+    This function saves the detected spot and cluster information, along with threshold values
+    and reference spots, to a NumPy NPZ file for future analysis.
+
+    Example
+    -------
+    saveSpotsNPZ(spotsFrame, clustersFrames, ThresholdFrames, 'Cell_1', '/path/to/cell/crops', reference_spot)
+    """
+    # Function implementation...
+    # ...
     outfileName = os.path.join(pathTocellCrops,str(cellName)+'_spots_and_clusters')
     np.savez(outfileName, 
              spotsFrame=spotsFrame, 
              clustersFrames=clustersFrames,
              ThresholdFrames=ThresholdFrames,
-             reference_spot=reference_spot) 
+             reference_spot=reference_spot, allow_pickle=True) 
 
