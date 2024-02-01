@@ -53,6 +53,40 @@ from bigfish.detection.spot_modeling import _initialize_grid_3d
 from copy import deepcopy
 
 def buildReferenceSpotFromImages(images, spots_list, alpha, gamma,voxelSize=(600,121,121), objectSize=(400,202,202)):  
+     """Build a reference spot from a sequence of cell images and associated spots.
+
+    Parameters
+    ----------
+    images : list or ndarray
+        Sequence of images representing a cell over time.
+    spots_list : list
+        List of spot coordinates associated with each image.
+    alpha : float
+        Parameter influencing the number of spots per candidate region.
+    gamma : float
+        Parameter for filtering step to denoise the image.
+    voxelSize : tuple, optional
+        Voxel size in nanometers, default is (600, 121, 121).
+    objectSize : tuple, optional
+        Object size in nanometers, default is (400, 202, 202).
+
+    Returns
+    -------
+    ndarray
+        Reference spot generated from the input images and spots.
+
+    Notes
+    -----
+    This function builds a reference spot by denoising and combining a sequence of images
+    with associated spot coordinates.
+
+    Example
+    -------
+    reference_spot = buildReferenceSpotFromImages(images, spots_list, alpha=0.2, gamma=1.0)
+    """
+    
+    # Function implementation...
+    # ...
     n=len(images)
     # if one image is provided we enlist it
     if not isinstance(images, list):
