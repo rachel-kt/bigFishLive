@@ -15,6 +15,7 @@ import bigfish.stack as stack
 import bigfish.detection as detection
 import bigfish.multistack as multistack
 import bigfish.plot as plot
+from copy import deepcopy
 from reorderStack import reorderZstack
 
 def getSpotAndClusters(pathTocellCrops,reference_spot, cellnumber=1, startTime=0, stopTime=900, thresholdManual=50, beta=1, gamma=1,numberOfSpots=2, radiusCluster=400, voxelSize=(600,121,121), objectSize=(400,202,202), reorder=False, extensionMov='.tif'):
