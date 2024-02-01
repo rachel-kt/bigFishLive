@@ -2,15 +2,18 @@
 # Author: Arthur Imbert <arthur.imbert.pro@gmail.com>
 # License: BSD 3 clause
 
+# Modifications added by Rachel Topno
+# modifications allow the usage of script to quantify live movies
+# The script must be placed ~./anaconda3/envs/<<YOUR-ENV-NAME>>/lib/python3.9/site-packages/bigfish/detection/
+# Add the line from .dense_decomposition_live import decompose_dense_live, get_dense_region_live in file named __init__.py in the same folder (detection)
+
 """
 Functions to detect dense and bright regions (with potential clustered spots),
 then use gaussian functions to correct a misdetection in these regions.
 """
 
 import warnings
-
 import numpy as np
-
 import bigfish.stack as stack
 
 from .utils import build_reference_spot
