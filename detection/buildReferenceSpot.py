@@ -4,38 +4,7 @@ Created on Tue Jul 3 14:59:14 2023
 
 @author: rachel
 
-This function is for reading cell z stacks crops and running bigfish spot and cluster detection on each movie frame. 
-
-Parameters
-----------
-
-1. pathTocellCrops : the path to the folder of the cell to be opened. (dir)
-               type : str
-                
-2. cellnumber : default 1. The nuclei to be used to perform the detection
-               type : int
-          
-3. startTime  : default 0. starting Time of the series to be analysed
-               type : int
-       
-4. stopTime  : default 2. stop Time of the series to be analysed
-
-
-Returns
--------
-
-1. spotsFrame  : list of numpy arrays of coordinate of the detected spots.
-               type : list of numpy.array
-               
-2. clustersFrames : list of numpy arrays of coordinates of the detected clusters.
-               type : list of numpy.array
-
-3. ThresholdFrames : List of numpy.ndarray of automatic thresholds
-               type : list of numpy.ndarray
-
-
 """
-
 
 import bigfish.stack as stack
 import numpy as np
@@ -53,7 +22,7 @@ from bigfish.detection.spot_modeling import _initialize_grid_3d
 from copy import deepcopy
 
 def buildReferenceSpotFromImages(images, spots_list, alpha, gamma,voxelSize=(600,121,121), objectSize=(400,202,202)):  
-     """Build a reference spot from a sequence of cell images and associated spots.
+    """Build a reference spot from a sequence of cell images and associated spots.
 
     Parameters
     ----------
@@ -195,9 +164,8 @@ def buildReferenceSpotFromImages(images, spots_list, alpha, gamma,voxelSize=(600
             # keep images that are not cropped by the borders
             if image_spot.shape == (z_shape, yx_shape, yx_shape):
                 l_reference_spot.append(image_spot)
-            # if not enough spots are detected
-        #print(str(ixx)+' l_ref_spot='+str(len(l_reference_spot)))
-
+    
+    # if not enough spots are detected
     if len(l_reference_spot) <= 30:
         print("Problem occurs during the computation of a reference "
                       "spot. Not enough (uncropped) spots have been detected.")
@@ -208,7 +176,6 @@ def buildReferenceSpotFromImages(images, spots_list, alpha, gamma,voxelSize=(600
     alpha_ = alpha * 100
     reference_spot = np.percentile(l_reference_spot, alpha_, axis=0)
     reference_spot = reference_spot.astype(image.dtype)
-    #plt.imshow(np.max(reference_spot, axis=0))
     
     print("Found "+str(len(l_reference_spot))+" spots, max intensity = "+str((np.max(reference_spot))))
     
