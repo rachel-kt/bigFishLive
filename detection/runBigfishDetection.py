@@ -133,7 +133,7 @@ def getSpotAndClusters(pathTocellCrops,reference_spot, cellnumber=1, startTime=0
     print('done!')
     return spotsFrame, clustersFrames, ThresholdFrames
 
-def saveSpotsNPZ(spotsFrame, clustersFrames, ThresholdFrames, cellName, pathTocellCrops, reference_spot):
+def saveSpotsNPZ(spotsFrame, clustersFrames, ThresholdFrames, cellName, pathTocellCrops, reference_spot, threshold):
     """Save spot and cluster information to a NumPy NPZ file.
 
     Parameters
@@ -150,6 +150,8 @@ def saveSpotsNPZ(spotsFrame, clustersFrames, ThresholdFrames, cellName, pathToce
         Path to the directory containing cell crop images.
     reference_spot : list
         List of reference spots.
+    threshold : int
+        Final threshold selected for detection.
 
     Returns
     -------

@@ -34,14 +34,12 @@ def get3DBlurredSequence(sequenceCell, windowSize=5):
     blurred_sequence = get3DBlurredSequence(cell_sequence, windowSize=7)
     
     """
-    blurImage = []
-    
+    blurImage = []  
     MaxTimePoint = sequenceCell.shape[0]
     start=windowSize//2
     stop=MaxTimePoint-start
     for t in range(start,stop):
         images = []
-        print(t)
         for ii in np.arange(-(windowSize-1)//2,(windowSize+1)//2,1):
             images.append(sequenceCell[t+ii])
 

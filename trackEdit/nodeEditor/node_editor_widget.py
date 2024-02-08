@@ -75,32 +75,7 @@ class NodeEditorWidget(QWidget):
             edge1 = Edge(self.scene, node1.outputs[0], node2.inputs[0], edge_type=2)
             edge2 = Edge(self.scene, node2.outputs[0], node3.inputs[0], edge_type=2)
             edge3 = Edge(self.scene, node3.outputs[0], node4.inputs[0], edge_type=2)
-        # ypos = 45400
-        # xpos = self.scene.grScene.start_xpos*(-1) + 200
-        
-        # nodes11 = []
-        # for iii in range(4):
-        #     nodes11.append(Node(self.scene, "ID 10"+format(iii, '03d'), inputs=[1], outputs=[2]))
-        #     nodes11[iii].setPos(xpos+400,-ypos+100*(iii+1))
-            
-        # edges111 = []
-        # for iii in range(3):
-        #     edges111.append(Edge(self.scene, nodes11[iii].outputs[0], nodes11[iii+1].inputs[0], edge_type=2))
 
-        # ypos = 600            
-        # node1 = Node(self.scene, "ID 10025", inputs=[1], outputs=[2])
-        # node2 = Node(self.scene, "ID 10026", inputs=[1], outputs=[2])
-        # node3 = Node(self.scene, "ID 10027", inputs=[1], outputs=[2])
-        # node4 = Node(self.scene, "ID 10028", inputs=[1], outputs=[2])
-        
-        # node1.setPos(xpos+0,-ypos+100*1)
-        # node2.setPos(xpos+200,-ypos+100*2)
-        # node3.setPos(xpos+200,-ypos+100*3)
-        # node4.setPos(xpos+0,-ypos+100*4)
-        
-        # edge1 = Edge(self.scene, node1.outputs[0], node2.inputs[0], edge_type=2)
-        # edge2 = Edge(self.scene, node2.outputs[0], node3.inputs[0], edge_type=2)
-        # edge3 = Edge(self.scene, node3.outputs[0], node4.inputs[0], edge_type=2)
         
         
         

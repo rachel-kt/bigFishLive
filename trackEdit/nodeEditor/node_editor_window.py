@@ -36,7 +36,7 @@ class setNapari():
                 edge_width=0.3,
                 edge_width_is_relative=False,
                 edge_color='white',
-                face_color_cycle = ['white'],
+                face_color_cycle = ['#00000000'],
                 name = 'bigFish Detected Spots'
                 )
     
@@ -49,40 +49,64 @@ class setNapari():
                 edge_color='red',
                 face_color_cycle = ['red'],
                 symbol='diamond',
-                name = 'bigFish Clusters'
+                name = 'bigFishLive Clusters'
                 )
         
-        self.annotations_layer = self.viewer.add_points([],name = 'Bigfish Results')
+        mrnaN = self.bfResults[int(np.shape(image)[0]/2)][:,3]
+        self.features = {
+            'N': mrnaN,
+            #'good_point': np.array([True, False, False]),
+        }
+        self.text = {
+            'string': '{N:.1f}',
+            'size': 15,
+            'color': 'white',
+            'translation': np.array([-15, 0]),
+        }
         
-        @self.viewer.bind_key('b')
-        def applyAnnotations(viewer):
-            currStep = list(self.viewer.dims.current_step)
-            annotCoord = self.bfResults[currStep[0]][:,1:3]
-            mrnaN = self.bfResults[currStep[0]][:,3]
-            self.features = {
-                'N': mrnaN,
-                #'good_point': np.array([True, False, False]),
-            }
-            self.text = {
-                'string': '{N:.1f}',
-                'size': 8,
-                'color': 'white',
-                'translation': np.array([-5, 0]),
-            }
-            face_color_cycle = ['white']
-            
-            self.annotations_layer = self.viewer.add_points(
-                annotCoord,
+        self.annotations_layer = self.viewer.add_points(
+                self.bfResults[int(np.shape(image)[0]/2)][:,1:3],
                 face_color='#00000000',
                 features=self.features,
                 text=self.text,
-                size=2,
-                edge_width=2,
+                size=10,
+                edge_width=0.5,
                 edge_width_is_relative=False,
                 edge_color='N',
-                edge_colormap='gray',
+                edge_colormap='pink',
                 name = 'Bigfish Results'
             )
+    
+        
+        # @self.viewer.bind_key('b')
+        # def applyAnnotations(viewer):
+        #     currStep = list(self.viewer.dims.current_step)
+        #     annotCoord = self.bfResults[currStep[0]][:,1:3]
+        #     mrnaN = self.bfResults[currStep[0]][:,3]
+        #     self.features = {
+        #         'N': mrnaN,
+        #         #'good_point': np.array([True, False, False]),
+        #     }
+        #     self.text = {
+        #         'string': '{N:.1f}',
+        #         'size': 8,
+        #         'color': 'white',
+        #         'translation': np.array([-5, 0]),
+        #     }
+        #     face_color_cycle = ['#00000000']
+            
+        #     self.annotations_layer = self.viewer.add_points(
+        #         annotCoord,
+        #         face_color='#00000000',
+        #         features=self.features,
+        #         text=self.text,
+        #         size=2,
+        #         edge_width=2,
+        #         edge_width_is_relative=False,
+        #         edge_color='N',
+        #         edge_colormap='gray',
+        #         name = 'Bigfish Results'
+        #     )
     
         #bigfish_TxSite = viewer.add_labels(Tx_label_clean, name='Tx Site',opacity=0.3)
     
@@ -125,13 +149,10 @@ class setNapari():
         ants_layer.features = {
             'N': mrnaNumber,
         }
-        
-        # pts_layer.selected_data = set([])
-        # cls_layer.selected_data = set([])
 
 
     def applyNodeSelection(self, tcoord, xcoord):
-        print('Currrent step:', self.viewer.dims.current_step)
+        print('Currrent step:', self.viewer.dims.current_step[0], 'xcoord:', xcoord)
         tempTup = self.viewer.dims.current_step
         tempTupList = list(tempTup)
         tempTupList[0] = tcoord
@@ -223,14 +244,19 @@ class NodeEditorWindow(QMainWindow):
     def onFileNewFromTracks(self):
         print("Get track File")
         self.centralWidget().scene.clear()
-        trackfile = '/home/rachel/single/hela_K11_ON-_F_particle_1.csv'
-        
-        npzfile = np.load('/media/rachel/9d56c1ff-e031-4e35-9f3c-fcd7d3e80033/Analysis/20230720/Hela_h9_h2_k11_mcpsg_1hrbasal_14hr_10ng.ml_tnf_exp1_4_F11/cellNumber_1trackData.npz', allow_pickle=True)
-        no_of_tracks = len(npzfile)-2
-        self.clusterFrames = npzfile[npzfile.files[-2]]
+        fnameTrackData, _ = QFileDialog.getOpenFileName(self, "Open track data file ",options=QFileDialog.DontUseNativeDialog)
+        if fnameTrackData == '':
+            return
+        if os.path.isfile(fnameTrackData):
+            self.npzfile = np.load(fnameTrackData,allow_pickle=True)
+
+        # self.npzfile = QFileDialog.getExistingDirectory(self, 'Select Folder')
+        # self.npzfile = np.load('/media/rachel/9d56c1ff-e031-4e35-9f3c-fcd7d3e80033/Analysis/20230720/Hela_h9_h2_k11_mcpsg_1hrbasal_14hr_10ng.ml_tnf_exp1_4_F11/cellNumber_1trackData.npz', allow_pickle=True)
+        no_of_tracks = len(self.npzfile)-2
+        self.clusterFrames = self.npzfile[self.npzfile.files[-2]]
 
         for txsites in range(no_of_tracks):
-            self.trackData = npzfile[npzfile.files[txsites]]
+            self.trackData = self.npzfile[self.npzfile.files[txsites]]
             self.totalNumberOfFrames = len(self.trackData)
             self.nodeFrames = np.where(self.trackData[:,4]!=0)[0]
             self.xpos = 500
