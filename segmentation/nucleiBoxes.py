@@ -199,6 +199,7 @@ def getTimeProfile(path_input,nucleiStackForm, cellNumber, label_image_name, lab
     # ...
 
     label_image = io.imread(label_image_name)
+    label_image = label(label_image)
     label_image = remove_edge_masks(label_image, change_index=True)
     nuclei=np.int64(cellNumber)
     nucIdx = np.where(labeldf['label']==np.int64(nuclei))
