@@ -98,7 +98,7 @@ def getNucleiCoordinates(maskPath, shouldIplot=False):
     plt.show()
     return cropBoxCoordinates, nucleiCentroids, noNuclei, orientations
 
-def getBackgroundTimeProfile(imagePath, nameKey, imsQ, minc, minr, maxc, maxr, start=0, stop=0, extensionF='.tif'):
+def getBackgroundTimeProfile(imagePath, nameKey, imsQ, minc, minr, maxc, maxr, start=0, stop=0, extensionF='.tif', saveCrop=True):
     """Calculate the background time profile based on image stack projections.
 
     Parameters
@@ -142,6 +142,7 @@ def getBackgroundTimeProfile(imagePath, nameKey, imsQ, minc, minr, maxc, maxr, s
     # ...
 
     meanofRandomImageSample = []
+    
     for timePoint in range(start, stop):
  
         nucleiStackName = nameKey+imsQ+'_t'+str(f"{timePoint:03}")+extensionF
@@ -152,6 +153,15 @@ def getBackgroundTimeProfile(imagePath, nameKey, imsQ, minc, minr, maxc, maxr, s
 
         projectionNuclei = np.max(newimage, axis=0)
         cropBoxForIntensity = projectionNuclei[minr:maxr,minc:maxc]
+                
+
+        if saveCrop==True:
+            bgFileName = os.path.join(imagePath,'background','background_t'+str(f"{timePoint:03}")+extensionF)
+            bgfolder = os.path.join(imagePath,'background')
+            if not os.path.exists(bgfolder):
+                os.makedirs(bgfolder)
+            with tifffile.TiffWriter(bgFileName, imagej=True) as tif:
+                tif.write(cropBoxForIntensity)
         meanofRandomImageSample.append(np.mean(cropBoxForIntensity))
     return meanofRandomImageSample
 
@@ -199,6 +209,7 @@ def getTimeProfile(path_input,nucleiStackForm, cellNumber, label_image_name, lab
     # ...
 
     label_image = io.imread(label_image_name)
+    label_image = label(label_image)
     label_image = remove_edge_masks(label_image, change_index=True)
     nuclei=np.int64(cellNumber)
     nucIdx = np.where(labeldf['label']==np.int64(nuclei))
