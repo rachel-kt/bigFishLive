@@ -18,7 +18,7 @@ import bigfish.plot as plot
 from copy import deepcopy
 from reorderStack import reorderZstack
 
-def getSpotAndClusters(pathTocellCrops,reference_spot, cellnumber=1, startTime=0, stopTime=900, thresholdManual=50, beta=1, gamma=1,numberOfSpots=2, radiusCluster=400, voxelSize=(600,121,121), objectSize=(400,202,202), reorder=False, extensionMov='.tif'):
+def getSpotAndClusters(imageSequence,reference_spot, cellnumber=1, startTime=0, stopTime=900, thresholdManual=50, beta=1, gamma=1,numberOfSpots=2, radiusCluster=400, voxelSize=(600,121,121), objectSize=(400,202,202), reorder=False, extensionMov='.tif', showProgress = True):
 
     """Detect spots and clusters within a cell over a specified time range.
 
@@ -82,12 +82,13 @@ def getSpotAndClusters(pathTocellCrops,reference_spot, cellnumber=1, startTime=0
     clustersFrames = []
     denseRegions = []
 
-    path_input = pathTocellCrops
-    movieName = path_input.split('/')[-3]
+#     path_input = pathTocellCrops
+#     movieName = path_input.split('/')[-3]
     
     for t in range(startTime, stopTime):
-        path = os.path.join(path_input, movieName+"_cell_"+str(cell)+'_t'+str(f"{t:03}")+extensionMov)
-        rna = stack.read_image(path)
+#         path = os.path.join(path_input, movieName+"_cell_"+str(cell)+'_t'+str(f"{t:03}")+extensionMov)
+#         rna = stack.read_image(path)
+        rna = np.array(imageSequence[t])
         if reorder:
             rna = reorderZstack(rna,4)
         #rna = normalize(rna,6000)
@@ -111,7 +112,7 @@ def getSpotAndClusters(pathTocellCrops,reference_spot, cellnumber=1, startTime=0
 
         spotsFrame.append(spots_current)
         ThresholdFrames.append(threshold)
-        print(t)
+        if showProgress==True: print(t)
         spots_post_decomposition, dense_regions, reference_spot_current = detection.decompose_dense_live(
             image=rna, 
             spots=spots_current,
@@ -173,5 +174,7 @@ def saveSpotsNPZ(spotsFrame, clustersFrames, ThresholdFrames, cellName, pathToce
              spotsFrame=spotsFrame, 
              clustersFrames=clustersFrames,
              ThresholdFrames=ThresholdFrames,
-             reference_spot=reference_spot, allow_pickle=True) 
+             reference_spot=reference_spot,
+             threshold = threshold,
+             allow_pickle=True) 
 
