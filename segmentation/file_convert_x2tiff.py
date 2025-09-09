@@ -15,6 +15,9 @@ import tifffile
 from aicsimageio import AICSImage
 import bioformats  # make sure python-bioformats is installed
 from imaris_ims_file_reader.ims import ims
+from dask.array.image import imread as imr
+import napari
+from qtpy.QtWidgets import QMainWindow, QWidget, QHBoxLayout
 # from your_module import ims   # uncomment and replace with your IMS loader
 
 
@@ -122,6 +125,9 @@ class App:
 
         self.btn_bulk = tk.Button(root, text="Bulk Processing", command=self.bulk_processing)
         self.btn_bulk.pack(pady=5)
+        
+        self.btn_view = tk.Button(root, text="View TIFF Sequence", command=self.view_tiff_sequence)
+        self.btn_view.pack(pady=5)
 
         self.progress = ttk.Progressbar(root, orient="horizontal", length=300, mode="determinate")
         self.progress.pack(pady=10)
@@ -209,6 +215,81 @@ class App:
                 continue
 
         messagebox.showinfo("Done", "Bulk processing completed!")
+        
+    
+    def view_tiff_sequence(self):
+        homeFolder0 = choose_home_folder()
+        if not homeFolder0:
+            return
+
+        # sessionName = os.path.basename(homeFolder0)
+        pathToTimeFrames = os.path.join(homeFolder0, "*.tif")
+        print("Loading TIFF stack:", pathToTimeFrames)
+
+        # movieName = os.path.basename(homeFolder0)
+        timeStack = imr(pathToTimeFrames)  # lazy load with dask
+        print('image in memory')
+        maxImage = np.max(timeStack, axis=1)
+        
+        print('max projection obtained')
+
+        class MultiViewer(QMainWindow):
+            def __init__(self, timeStack, maxImage, label_image=None):
+                super().__init__()
+                self.setWindowTitle("TIFF Sequence + Max Projection")
+
+                central_widget = QWidget()
+                layout = QHBoxLayout()
+                central_widget.setLayout(layout)
+                self.setCentralWidget(central_widget)
+
+                # Viewer 1: timeStack
+                self.viewer1 = napari.Viewer(show=False)
+                ts_layer = self.viewer1.add_image(timeStack, colormap="green", name="TIFF Sequence")
+                # if label_image is not None:
+                #     self.viewer1.add_labels(label_image, name="Mask")
+
+                # Viewer 2: max projection
+                self.viewer2 = napari.Viewer(show=False)
+                mp_layer = self.viewer2.add_image(maxImage, colormap="magenta", name="Max Projection")
+
+                # Embed viewers into same window
+                layout.addWidget(self.viewer1.window._qt_window)
+                layout.addWidget(self.viewer2.window._qt_window)
+
+                # ---------------------------
+                # Synchronize time scrolling using current_step events
+                # ---------------------------
+                self._syncing = False  # prevent recursive update
+
+                def sync_viewer1(event):
+                    if not self._syncing:
+                        self._syncing = True
+                        current_coords = event.value
+                        t_1 = np.array(current_coords)[0]
+                        current_coords_2 = np.array(self.viewer2.dims.current_step)
+                        current_coords_2[0] = t_1
+                        self.viewer2.dims.current_step = tuple(current_coords_2)
+                        self._syncing = False
+
+                def sync_viewer2(event):
+                    if not self._syncing:
+                        self._syncing = True
+                        current_coords = event.value
+                        t_2 = np.array(current_coords)[0]
+                        current_coords_1 = np.array(self.viewer1.dims.current_step)
+                        current_coords_1[0] = t_2
+                        self.viewer1.dims.current_step = tuple(current_coords_1)
+                        self._syncing = False
+
+                self.viewer1.dims.events.current_step.connect(sync_viewer1)
+                self.viewer2.dims.events.current_step.connect(sync_viewer2)
+
+        # Launch both viewers
+        multi = MultiViewer(timeStack, maxImage)
+        multi.show()
+        napari.run()
+
 
 
 if __name__ == "__main__":
